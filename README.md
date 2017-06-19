@@ -52,6 +52,12 @@ control.send({
 });
 ```
 
+`send` function on both ends is a function that initiates a message to another end. It has an only object parameter with fields `type` and `payload`:
+- `type` must be a string. It is and identifier of message type, that also is passed to `registerMsgHandler` first parameter.
+- `payload` may be any serializable value.
+
+Likewise, `registerMsgHandler` function on both ends is a receiver function, its second parameter is a callback function, which receives `payload` as its only parameter.
+
 ### Passing options into worker
 
 Second parameter in `createWorker` is a hash map of some values to be transferred into worker global scope. See example below:
@@ -109,6 +115,17 @@ When used within webpack, **Prorab** uses third parameter in `createWorker` to p
 - If module depends on any internal APIs that are not supported inside web workers, it will not work.
 
 Module IDs should be resolved with `require.resolve`. Hash map keys are names to place module into when passsing to global worker scope, values are modules IDs. See an example of passing `axios` library into worker:
+
+```
+  // Axios should be aliased in webpack config, or it won't work:
+  ...
+  resolve: {
+    alias: {
+      'axios': path.resolve(__dirname, '..', 'node_modules/axios/dist/axios.min.js')
+    }
+  }
+  ...
+```
 
 ```
 let workerFunc = function () {
