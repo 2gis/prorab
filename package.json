@@ -1,0 +1,25 @@
+{
+  "name": "prorab",
+  "version": "1.0.0",
+  "description": "Web workers abstraction layer",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "",
+    "compile": "tsc index.ts -m umd --outDir dist",
+    "minify": "uglifyjs -c -m  -o dist/index.min.js -- dist/index.js",
+    "build": "npm run compile && npm run minify"
+  },
+  "keywords": [
+    "workers"
+  ],
+  "author": "Oleg Klimenko",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "3.13.1",
+    "tslib": "1.5.0",
+    "tslint": "4.3.1",
+    "tslint-eslint-rules": "3.2.3",
+    "typescript": "2.2.2",
+    "uglify-js": "^3.0.18"
+  }
+}
