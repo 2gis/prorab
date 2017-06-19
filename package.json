@@ -12,6 +12,10 @@
   "keywords": [
     "workers"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ctizen/prorab"
+  },
   "author": "Oleg Klimenko",
   "license": "MIT",
   "devDependencies": {
