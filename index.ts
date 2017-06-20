@@ -74,7 +74,7 @@ function prepareOptions(options: { [key: string]: any }) {
   let prepared: { [key: string]: string } = {};
   for (let i in options) {
     if (typeof options[i] == 'function') { // Explicitly handle functions in first-level
-      options[i] = URL.createObjectURL(new Blob(
+      prepared[i] = URL.createObjectURL(new Blob(
         ['options["' + i + '"] = ', replaceContext(options[i].toString(), Object.keys(options))],
         { type: 'application/javascript' }
       ));

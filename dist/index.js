@@ -56,7 +56,7 @@ function prepareOptions(options) {
     var prepared = {};
     for (var i in options) {
         if (typeof options[i] == 'function') {
-            options[i] = URL.createObjectURL(new Blob(['options["' + i + '"] = ', replaceContext(options[i].toString(), Object.keys(options))], { type: 'application/javascript' }));
+            prepared[i] = URL.createObjectURL(new Blob(['options["' + i + '"] = ', replaceContext(options[i].toString(), Object.keys(options))], { type: 'application/javascript' }));
         }
         else {
             prepared[i] = options[i];
