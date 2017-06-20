@@ -46,12 +46,23 @@ function getMainFunc(func, umdImports) {
         type: 'application/javascript'
     }));
 }
-function getFunctionalParameter(func, paramName) {
-    return URL.createObjectURL(new Blob([
-        'options["' + paramName, '"] = ', func.toString()
-    ], {
-        type: 'application/javascript'
-    }));
+// Replace calls to functions in current context to allow multiple functions to be passed inside.
+function replaceContext(funcStr, context) {
+    return context.reduce(function (acc, val) {
+        return acc.replace(val + '(', 'this.options.' + val + '('); // TODO: different code style?
+    }, funcStr);
+}
+function prepareOptions(options) {
+    var prepared = {};
+    for (var i in options) {
+        if (typeof options[i] == 'function') {
+            options[i] = URL.createObjectURL(new Blob(['options["' + i + '"] = ', replaceContext(options[i].toString(), Object.keys(options))], { type: 'application/javascript' }));
+        }
+        else {
+            prepared[i] = options[i];
+        }
+    }
+    return prepared;
 }
 function makeWebpackImports(imports) {
     if (typeof __webpack_modules__ === 'undefined') {
@@ -72,14 +83,9 @@ function makeWebpackImports(imports) {
 }
 exports.createWorker = function (mainFunc, options, webpackImports) {
     var worker = new Worker(getMainFunc(mainFunc, makeWebpackImports(webpackImports || {})));
-    for (var i in options) {
-        if (typeof options[i] == 'function') {
-            options[i] = getFunctionalParameter(options[i], i);
-        }
-    }
     worker.postMessage({
         type: 'init',
-        options: options
+        options: prepareOptions(options)
     });
     var controlObject = {
         worker: worker,

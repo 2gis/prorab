@@ -63,13 +63,27 @@ function getMainFunc(func: () => void, umdImports: string[]): string {
   );
 }
 
-function getFunctionalParameter(func: () => void, paramName: string): string {
-  return URL.createObjectURL(new Blob([
-    'options["' + paramName, '"] = ', func.toString()
-  ], {
-      type: 'application/javascript'
-    })
-  );
+// Replace calls to functions in current context to allow multiple functions to be passed inside.
+function replaceContext(funcStr: string, context: string[]) {
+  return context.reduce((acc, val) => {
+    return acc.replace(val + '(', 'this.options.' + val + '('); // TODO: different code style?
+  }, funcStr);
+}
+
+function prepareOptions(options: { [key: string]: any }) {
+  let prepared: { [key: string]: string } = {};
+  for (let i in options) {
+    if (typeof options[i] == 'function') { // Explicitly handle functions in first-level
+      options[i] = URL.createObjectURL(new Blob(
+        ['options["' + i + '"] = ', replaceContext(options[i].toString(), Object.keys(options))],
+        { type: 'application/javascript' }
+      ));
+    } else {
+      prepared[i] = options[i];
+    }
+  }
+
+  return prepared;
 }
 
 declare var __webpack_modules__: { [key: string]: string };
@@ -79,17 +93,17 @@ function makeWebpackImports(imports: { [key: string]: string }): string[] {
   }
 
   let procImports = [
-    'var mod; var imported = {}; ' 
-      + 'var resolver = function (moduleId) { return imports[imported[moduleId]]; };'
-      + 'resolver.d = function(target, member, value) { setTimeout(function() { target[member] = value(); }, 0); };'
+    'var mod; var imported = {}; '
+    + 'var resolver = function (moduleId) { return imports[imported[moduleId]]; };'
+    + 'resolver.d = function(target, member, value) { setTimeout(function() { target[member] = value(); }, 0); };'
   ];
 
   for (let i in imports) {
     procImports.push(
       'var mod = {exports: {}}; (' + __webpack_modules__[imports[i]]
-        + ')(mod, mod.exports, resolver); '
-	+ 'imports["' + i + '"] = mod.exports; ' 
-	+ 'imported[' + imports[i] + '] = "' + i + '";'
+      + ')(mod, mod.exports, resolver); '
+      + 'imports["' + i + '"] = mod.exports; '
+      + 'imported[' + imports[i] + '] = "' + i + '";'
     );
   }
 
@@ -98,15 +112,9 @@ function makeWebpackImports(imports: { [key: string]: string }): string[] {
 
 export const createWorker: WorkerCreator = (mainFunc, options, webpackImports) => {
   let worker = new Worker(getMainFunc(mainFunc, makeWebpackImports(webpackImports || {})));
-  for (let i in options) {
-    if (typeof options[i] == 'function') {
-      options[i] = getFunctionalParameter(options[i], i);
-    }
-  }
-
   worker.postMessage({
     type: 'init',
-    options: options
+    options: prepareOptions(options)
   });
 
   let controlObject: WorkerControlObject = {
