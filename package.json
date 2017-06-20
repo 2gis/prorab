@@ -1,6 +1,6 @@
 {
   "name": "prorab",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Web workers abstraction layer",
   "main": "dist/index.js",
   "scripts": {

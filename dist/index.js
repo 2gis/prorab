@@ -49,8 +49,8 @@ function getMainFunc(func, umdImports) {
 // Replace calls to functions in current context to allow multiple functions to be passed inside.
 function replaceContext(funcStr, context) {
     return context.reduce(function (acc, val) {
-        return acc.replace(new RegExp(val + '\s*\(', 'g'), 'this.options.' + val + '(')
-            .replace('function this.options.', 'function '); // declarations should not be replaced
+        return acc.replace(new RegExp(val + '\\s*\\(', 'g'), 'options.' + val + '(')
+            .replace('function options.', 'function '); // declarations should not be replaced
     }, funcStr);
 }
 function prepareOptions(options) {
