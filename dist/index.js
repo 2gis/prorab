@@ -57,10 +57,16 @@ function makeWebpackImports(imports) {
     if (typeof __webpack_modules__ === 'undefined') {
         return [];
     }
-    var procImports = [];
+    var procImports = [
+        'var mod; var imported = {}; '
+            + 'var resolver = function (moduleId) { return imports[imported[moduleId]]; };'
+            + 'resolver.d = function(target, member, value) { setTimeout(function() { target[member] = value(); }, 0); };'
+    ];
     for (var i in imports) {
-        procImports.push('var mod = {}; (' + __webpack_modules__[imports[i]] +
-            ')(mod, undefined, () => {}); imports["' + i + '"] = mod.exports;');
+        procImports.push('var mod = {exports: {}}; (' + __webpack_modules__[imports[i]]
+            + ')(mod, mod.exports, resolver); '
+            + 'imports["' + i + '"] = mod.exports; '
+            + 'imported[' + imports[i] + '] = "' + i + '";');
     }
     return procImports;
 }
