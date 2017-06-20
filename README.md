@@ -142,3 +142,9 @@ let control = createWorker(workerFunc, {}, {
 ```
 
 Webpack module will be accessible with `this.imports` in global worker scope. Like options, imported modules should not be used in current tick.
+
+If a module depends on some other modules, which match all the conditions listed above, you still can pass this module into worker, but you should explicitly provide all its dependencies. For example, any typescript module implicitly needs `tslib` module, so it should be listed first in `imports` parameter like this:
+```
+'tslib': require.resolve('tslib')
+```
+
