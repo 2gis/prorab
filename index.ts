@@ -12,7 +12,7 @@ export type WorkerCreator = (
   webpackImports?: { [key: string]: string }
 ) => WorkerControlObject;
 
-export type GlobalSend = ({ type, payload }: { type: string, payload: any }) => void;
+export type GlobalSend = ({ type, payload }: { type: string, payload?: any }) => void;
 
 function workerInit() {
   this.msgHandlers = {};
