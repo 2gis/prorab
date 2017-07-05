@@ -1,10 +1,25 @@
 "use strict";
 exports.__esModule = true;
+function log() {
+    var msg = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        msg[_i] = arguments[_i];
+    }
+    console.log.apply(console, ['[main thread][' + Date.now() + '] '].concat(msg));
+}
 function workerInit() {
     var _this = this;
     this.msgHandlers = {};
     this.options = {};
     this.imports = {};
+    this.debug = false;
+    this.log = function () {
+        var msg = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            msg[_i] = arguments[_i];
+        }
+        console.log.apply(console, ['[worker][' + Date.now() + '] '].concat(msg));
+    };
     this.registerMsgHandler = function (handlerName, handler) {
         if (!_this.msgHandlers[handlerName]) {
             _this.msgHandlers[handlerName] = handler;
@@ -14,6 +29,9 @@ function workerInit() {
         delete _this.msgHandlers[handlerName];
     };
     this.send = function (message) {
+        if (_this.debug) {
+            _this.log('Sending message: ' + message.type);
+        }
         _this.postMessage(JSON.stringify(message));
     };
     self.onmessage = function (event) {
@@ -30,6 +48,13 @@ function workerInit() {
                 }
                 break;
             default:
+                if (event.data.debug) {
+                    _this.log('Received message: ' + event.data.type, event.data.payload);
+                    _this.debug = true;
+                }
+                else {
+                    _this.debug = false;
+                }
                 var payload = JSON.parse(event.data.payload) || {};
                 if (_this.msgHandlers[event.data.type]) {
                     _this.msgHandlers[event.data.type](payload);
@@ -84,15 +109,18 @@ function makeWebpackImports(imports) {
     }
     return procImports;
 }
-exports.createWorker = function (mainFunc, options, webpackImports) {
+exports.createWorker = function (mainFunc, options, webpackImports, debug) {
+    if (debug === void 0) { debug = false; }
     var worker = new Worker(getMainFunc(mainFunc, makeWebpackImports(webpackImports || {})));
     worker.postMessage({
         type: 'init',
+        debug: false,
         options: prepareOptions(options)
     });
     var controlObject = {
         worker: worker,
         messageListeners: {},
+        debug: debug,
         registerMsgHandler: function (eventType, handler) {
             if (!controlObject.messageListeners[eventType]) {
                 controlObject.messageListeners[eventType] = handler;
@@ -105,8 +133,12 @@ exports.createWorker = function (mainFunc, options, webpackImports) {
         },
         send: function (_a) {
             var type = _a.type, payload = _a.payload;
+            if (controlObject.debug) {
+                log('Sending message: ' + type);
+            }
             worker.postMessage({
                 type: type,
+                debug: controlObject.debug,
                 payload: JSON.stringify(payload)
             });
             return controlObject;
@@ -114,6 +146,9 @@ exports.createWorker = function (mainFunc, options, webpackImports) {
     };
     worker.onmessage = function (e) {
         var data = JSON.parse(e.data);
+        if (controlObject.debug) {
+            log('Received message: ' + data.type, data.payload);
+        }
         var payload = data.payload || {};
         if (controlObject.messageListeners[data.type]) {
             controlObject.messageListeners[data.type](payload);

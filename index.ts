@@ -1,5 +1,6 @@
 export interface WorkerControlObject {
   worker: Worker;
+  debug: boolean;
   messageListeners: { [key: string]: Function };
   registerMsgHandler: (eventType: string, handler: Function) => WorkerControlObject;
   dropMsgHandler: (eventType: string) => WorkerControlObject;
@@ -14,10 +15,18 @@ export type WorkerCreator = (
 
 export type GlobalSend = ({ type, payload }: { type: string, payload?: any }) => void;
 
+function log(...msg: string[]) {
+  console.log('[main thread][' + Date.now() + '] ', ...msg);
+}
+
 function workerInit() {
   this.msgHandlers = {};
   this.options = {};
   this.imports = {};
+  this.debug = false;
+  this.log = function (...msg: string[]) {
+    console.log('[worker][' + Date.now() + '] ', ...msg);
+  };
 
   this.registerMsgHandler = (handlerName: string, handler: (payload: { [key: string]: any }) => void) => {
     if (!this.msgHandlers[handlerName]) {
@@ -30,6 +39,9 @@ function workerInit() {
   };
 
   this.send = (message: any) => {
+    if (this.debug) {
+      this.log('Sending message: ' + message.type);
+    }
     this.postMessage(JSON.stringify(message));
   };
 
@@ -46,6 +58,12 @@ function workerInit() {
         }
         break;
       default:
+        if (event.data.debug) {
+          this.log('Received message: ' + event.data.type, event.data.payload);
+          this.debug = true;
+        } else {
+          this.debug = false;
+        }
         let payload = JSON.parse(event.data.payload) || {};
         if (this.msgHandlers[event.data.type]) {
           this.msgHandlers[event.data.type](payload);
@@ -115,17 +133,18 @@ function makeWebpackImports(imports: { [key: string]: string }): string[] {
   return procImports;
 }
 
-export const createWorker: WorkerCreator = (mainFunc, options, webpackImports) => {
+export const createWorker: WorkerCreator = (mainFunc, options, webpackImports, debug: boolean = false) => {
   let worker = new Worker(getMainFunc(mainFunc, makeWebpackImports(webpackImports || {})));
   worker.postMessage({
     type: 'init',
+    debug: false,
     options: prepareOptions(options)
   });
 
   let controlObject: WorkerControlObject = {
     worker,
     messageListeners: {},
-
+    debug,
     registerMsgHandler: (eventType, handler) => {
       if (!controlObject.messageListeners[eventType]) {
         controlObject.messageListeners[eventType] = handler;
@@ -139,8 +158,12 @@ export const createWorker: WorkerCreator = (mainFunc, options, webpackImports) =
     },
 
     send: ({ type, payload }) => {
+      if (controlObject.debug) {
+        log('Sending message: ' + type);
+      }
       worker.postMessage({
         type,
+        debug: controlObject.debug,
         payload: JSON.stringify(payload)
       });
       return controlObject;
@@ -149,6 +172,9 @@ export const createWorker: WorkerCreator = (mainFunc, options, webpackImports) =
 
   worker.onmessage = function (e) {
     let data = JSON.parse(e.data);
+    if (controlObject.debug) {
+      log('Received message: ' + data.type, data.payload);
+    }
     let payload = data.payload || {};
     if (controlObject.messageListeners[data.type]) {
       controlObject.messageListeners[data.type](payload);
