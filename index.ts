@@ -47,7 +47,6 @@ function workerInit() {
         break;
       default:
         let payload = JSON.parse(event.data.payload) || {};
-        payload.__type__ = event.data.type;
         if (this.msgHandlers[event.data.type]) {
           this.msgHandlers[event.data.type](payload);
         }
@@ -152,7 +151,6 @@ export const createWorker: WorkerCreator = (mainFunc, options, webpackImports) =
     let data = JSON.parse(e.data);
     let payload = data.payload || {};
     if (controlObject.messageListeners[data.type]) {
-      payload.__type__ = data.type;
       controlObject.messageListeners[data.type](payload);
     }
   };
