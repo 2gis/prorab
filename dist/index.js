@@ -71,7 +71,10 @@ function makeWebpackImports(imports) {
     }
     var procImports = [
         'var mod; var imported = {}; '
-            + 'var resolver = function (moduleId) { return imports[imported[moduleId]]; };'
+            + 'var resolver = function (moduleId) { if (!imports[imported[moduleId]]) { '
+            + 'throw new Error("Import " + moduleId + " (mapped to " + imported[moduleId] + ") cannot be found. You may try to '
+            + 'reorder your imports, to load all dependencies before any dependent imports '
+            + 'to fix this."); } return imports[imported[moduleId]]; };'
             + 'resolver.d = function(target, member, value) { setTimeout(function() { target[member] = value(); }, 0); };'
     ];
     for (var i in imports) {
