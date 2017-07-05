@@ -10,7 +10,8 @@ export interface WorkerControlObject {
 export type WorkerCreator = (
   mainFunc: () => void,
   options: { [key: string]: any },
-  webpackImports?: { [key: string]: string }
+  webpackImports?: { [key: string]: string },
+  debug?: boolean
 ) => WorkerControlObject;
 
 export type GlobalSend = ({ type, payload }: { type: string, payload?: any }) => void;
