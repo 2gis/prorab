@@ -59,13 +59,13 @@ function workerInit() {
         }
         break;
       default:
+        let payload = JSON.parse(event.data.payload) || {};
         if (event.data.debug) {
-          this.log('Received message: ' + event.data.type, event.data.payload);
+          this.log('Received message: ' + event.data.type, payload);
           this.debug = true;
         } else {
           this.debug = false;
         }
-        let payload = JSON.parse(event.data.payload) || {};
         if (this.msgHandlers[event.data.type]) {
           this.msgHandlers[event.data.type](payload);
         }
@@ -173,10 +173,10 @@ export const createWorker: WorkerCreator = (mainFunc, options, webpackImports, d
 
   worker.onmessage = function (e) {
     let data = JSON.parse(e.data);
-    if (controlObject.debug) {
-      log('Received message: ' + data.type, data.payload);
-    }
     let payload = data.payload || {};
+    if (controlObject.debug) {
+      log('Received message: ' + data.type, payload);
+    }
     if (controlObject.messageListeners[data.type]) {
       controlObject.messageListeners[data.type](payload);
     }

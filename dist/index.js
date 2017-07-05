@@ -48,14 +48,14 @@ function workerInit() {
                 }
                 break;
             default:
+                var payload = JSON.parse(event.data.payload) || {};
                 if (event.data.debug) {
-                    _this.log('Received message: ' + event.data.type, event.data.payload);
+                    _this.log('Received message: ' + event.data.type, payload);
                     _this.debug = true;
                 }
                 else {
                     _this.debug = false;
                 }
-                var payload = JSON.parse(event.data.payload) || {};
                 if (_this.msgHandlers[event.data.type]) {
                     _this.msgHandlers[event.data.type](payload);
                 }
@@ -146,10 +146,10 @@ exports.createWorker = function (mainFunc, options, webpackImports, debug) {
     };
     worker.onmessage = function (e) {
         var data = JSON.parse(e.data);
-        if (controlObject.debug) {
-            log('Received message: ' + data.type, data.payload);
-        }
         var payload = data.payload || {};
+        if (controlObject.debug) {
+            log('Received message: ' + data.type, payload);
+        }
         if (controlObject.messageListeners[data.type]) {
             controlObject.messageListeners[data.type](payload);
         }
