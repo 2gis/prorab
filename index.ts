@@ -4,7 +4,7 @@ export interface WorkerControlObject {
   messageListeners: { [key: string]: Function };
   registerMsgHandler: (eventType: string, handler: Function) => WorkerControlObject;
   dropMsgHandler: (eventType: string) => WorkerControlObject;
-  send: ({ type, payload }: { type: string, payload: any }) => WorkerControlObject;
+  send: ({ type, payload }: { type: string, payload?: any }) => WorkerControlObject;
 }
 
 export type WorkerCreator = (
@@ -59,7 +59,7 @@ function workerInit() {
         }
         break;
       default:
-        let payload = JSON.parse(event.data.payload) || {};
+        let payload = event.data.payload && JSON.parse(event.data.payload) || {};
         if (event.data.debug) {
           this.log('Received message: ' + event.data.type, payload);
           this.debug = true;
