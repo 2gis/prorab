@@ -48,7 +48,7 @@ function workerInit() {
                 }
                 break;
             default:
-                var payload = JSON.parse(event.data.payload) || {};
+                var payload = event.data.payload && JSON.parse(event.data.payload) || {};
                 if (event.data.debug) {
                     _this.log('Received message: ' + event.data.type, payload);
                     _this.debug = true;

@@ -1,10 +1,10 @@
 {
   "name": "prorab",
-  "version": "1.3.3",
+  "version": "1.4.0",
   "description": "Web workers abstraction layer",
   "main": "dist/index.js",
   "scripts": {
-    "test": "",
+    "test": "./node_modules/.bin/karma start --browsers Firefox --single-run",
     "compile": "tsc index.ts --outDir dist",
     "minify": "uglifyjs -c -m  -o dist/index.min.js -- dist/index.js",
     "build": "npm run compile && npm run minify"
@@ -14,16 +14,23 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/ctizen/prorab"
+    "url": "https://github.com/2gis/prorab"
   },
   "author": "Oleg Klimenko",
   "license": "MIT",
   "devDependencies": {
+    "browserify": "^14.4.0",
     "eslint": "3.13.1",
+    "karma": "1.7.0",
+    "karma-browserify": "^5.1.1",
+    "karma-firefox-launcher": "^1.0.1",
+    "karma-mocha": "^1.3.0",
+    "mocha": "^3.4.2",
     "tslib": "1.5.0",
     "tslint": "4.3.1",
     "tslint-eslint-rules": "3.2.3",
     "typescript": "2.2.2",
-    "uglify-js": "^3.0.18"
+    "uglify-js": "3.0.18",
+    "watchify": "^3.9.0"
   }
 }
