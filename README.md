@@ -1,5 +1,5 @@
 ## Prorab: web worker abstraction library
-![](https://api.travis-ci.org/2gis/prorab.svg?branch=master)
+[![Build Status](https://travis-ci.org/2gis/prorab.svg?branch=master)](https://travis-ci.org/2gis/prorab)
 
 **Prorab** is a small library providing thin abstraction layer on web worker interface to make easier creation of and interaction with web workers. It's written in typescript entirely, but compiled javascript version is also included.
 
